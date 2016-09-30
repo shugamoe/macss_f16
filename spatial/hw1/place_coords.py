@@ -1,4 +1,4 @@
-# Pair the GPS coordinates of traffic measurement sensors to Chicago 
+# Pair the GPS coordinates of traffic measurement points to Chicago 
 # neighborhoods (1-77)
 
 import json 
@@ -7,50 +7,47 @@ import csv
 import pandas as pd
 
 
-class TrafficSensor(object):
+def main(geojson_file, coords_file, separate = False):
 	'''
-	A Class for the traffic sensor data
 	'''
-	def __init__(self, id_num, vol, lon, lat):
-		self.id = id_num
-		self.coords = Point(lon, lat)
-		self.vol = vol
-		self.hood_code = None # Don't know neighborhood yet.
+	with open('Boundaries-Community Areas_(current).geojson', 'r') as f:
+		geojs = json.load(f)
 
-	def __repr__(self):
-		return "{} Vehicles at {}".format(self.vol, self.coords)
+	with open('traf_less.csv', 'r') as f:
+		reader = csv.DictReader(f)
 
+		points = []
+		p_volume = []
+		for row in reader:
+			point = Point(float(row['Longitude']), float(row['Latitude']))
+			points.append(point)
+			p_volume.append(int(row['Total.Passing.Vehicle.Volume']))
 
-with open('Boundaries-Community Areas_(current).geojson', 'r') as f:
-	geojs = json.load(f)
+	# Find the corresponding neighborhood int for each point and add the traffic
+	# volume measured at that point to the geojs file.
+	i = 0 # Row Counter
+	for point in points:
+		i += 1
+		for hood in geojs['features']:
+			polygon = shape(hood['geometry'])
+			if polygon.contains(point):
+				print("Data from Sensor {} assigned to hood code {}".format(i, \
+					hood['properties']['area_num_1']))
+				hood['properties']['traf_vol'] = \
+					hood['properties'].setdefault('traf_vol', 0) + \
+					p_volume.pop(0)
+				hood['properties']['num_sensors'] = \
+					hood['properties'].setdefault('num_sensors', 0) + 1
 
-with open('traf_less.csv', 'r') as f:
-	reader = csv.DictReader(f)
-
-	traf_sensors = []
-	for row in reader:
-		sensor = TrafficSensor(int(row['']), 
-							   int(row['Total.Passing.Vehicle.Volume']), \
-							   float(row['Longitude']), float(row['Latitude']))
-		traf_sensors.append(sensor)
-
-# Find the neighborhood each sensor is located in
-for sensor in traf_sensors:
 	for hood in geojs['features']:
-		polygon = shape(hood['geometry'])
-		if polygon.contains(sensor.coords):
-			# Assign neighborhood code to sensor
-			sensor.hood_code = hood['properties']['area_num_1']
-			print('Sensor {} allocated to neighborhood {}'.format(sensor.id, \
-				sensor.hood_code))
+		if 'traf_vol' in hood['properties']:
+			hood['properties']['traf_per_sensor'] = \
+				hood['properties']['traf_vol'] / hood['properties']['num_sensors']
+				
+	with open('Chicago_neighborhoods_traf_vol.geojson', 'w') as outfile:
+		json.dump(geojs, outfile) 
+		print('New JSON file written')
 
 
-# Extract hood codes to list and write a new CSV file
-hood_codes = [sensor.hood_code for sensor in traf_sensors]
-hcodes_df = pd.DataFrame(hood_codes, columns = ['hood_codes'])
-traf_csv = pd.read_csv('traf_less.csv')
-traf_csv['hood_code'] = hcodes_df['hood_codes']
-traf_csv.to_csv('traf_with_hoods.csv')
-
-
-		
+if __name__ == '__main__':
+	main(None, None)
