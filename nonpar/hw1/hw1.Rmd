@@ -12,12 +12,18 @@ output:
 
 ### (a)
 
+sample_size = c(seq(1,200))
+sig_sqr = 
+
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-# Let's define our function
-hw_zt_reject_props = function(sample_size = 3, num_tests = 1000) {
+sim = function(sig_sqr = 1, b = 1000) {
+  mews = c()
+  for(rep in (1:b)) {
+    append(mews, rnorm())
+    xs = rnorm(sample_size, 1, sig_sqr)
+    
+  }
   
-  # Conduct simulation
-  sims = replicate(rnorm(mean = 0, sd = runif(n = 1,min = 1, max = 50), n=sample_size), n=num_tests)
   
   # Construct shared test-statistic (assume null that mean=0 is true)
   test_stat = (sqrt(sample_size)*apply(sims, 2, mean)) / apply(sims, 2, sd)
