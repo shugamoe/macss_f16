@@ -12,50 +12,55 @@ output:
 
 ### (a)
 
-sample_size = c(seq(1,200))
-sig_sqr = 
+
 
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-sim = function(sig_sqr = 1, b = 1000) {
-  mews = c()
-  for(rep in (1:b)) {
-    append(mews, rnorm())
-    xs = rnorm(sample_size, 1, sig_sqr)
+sample_size = c(seq(1,200))
+sim = function(part_b = FALSE, ssize = sample_size, sig = 1, b = 100) {
+  rv = c()
+  for(n in sample_size){
+    stat_n =  c()
     
+    for(rep in (1:b)) {
+      mew_n = mean(rnorm(n, 1, sig))
+      if(part_b) {
+        stat_b = sqrt(n) * (mew_n - 1) # Z
+      } else {
+        stat_b = (mew_n - 1)^2 # The MSE
+      }
+      stat_n = append(stat_n, stat_b)
+    }
+    
+    if(part_b) {
+      stat_rv = stat_n
+    } else {
+      stat_rv = mean(stat_n)
+    }
+    rv = append(rv, stat_rv)
+  }
+  if(part_b) {
+    x = seq(-3, 3, .01)
+    f = dnorm(x, sd = sig)
+    plot(density(rv), main = "Z")
+    lines(x,f,'l',col='red')
+  } else {
+    # Normal scale plot
+    plot(sample_size, rv, ylab = "")
+    lines(sample_size, (sig^2) / sample_size, col = "red")
+    title(expression(paste(frac(sigma^2, n), "vs. Empirical MSE")), line = -2) 
+    
+    # Log Log Plot
+    plot(sample_size, log = "xy", rv, ylab = "log 1", xlab = "log sample size")
+    lines(sample_size, (sig^2) / sample_size, col = "red")
+    title(expression(paste("log(", frac(sigma^2, n), ") ", "vs. log(Empirical MSE)")), line = -2)
   }
   
-  
-  # Construct shared test-statistic (assume null that mean=0 is true)
-  test_stat = (sqrt(sample_size)*apply(sims, 2, mean)) / apply(sims, 2, sd)
-  
-  # Determine critical values for the z and t tests respectively
-  z_crit = qnorm(p = .95)
-  t_crit = qt(df = sample_size - 1, p = .95)
-
-  # Determine whether for each of the tests we rejected using the z or t tests respectively.
-  z_reject = test_stat > z_crit
-  t_reject = test_stat > t_crit
-  
-  # Return proportion of rejectsions for the z and t tests respectively.
-  return(c(count(z_reject, TRUE), count(t_reject, TRUE)))
-
 }
 ```
 
-As we can see, when n = 3 the z test rejects the null more often than the t test.  
-
-Now let's run the experiment again with n = 100.  
-
+### (b)
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-hw_zt_reject_props(sample_size = 100)
+zs = sim(TRUE)
+plot(sample_size, zs)
 ```
-
-Now, the z test rejects the null at the same proportion (approximately) as the t test.  
-
-We can use the one sample *t* test or the *z* test when the data is not normal, but only if the sample size (n) is large enough to invoke the CLT.  Otherwise, we cannot be sure that the distribution of the sample mean is approximately normal.  
-
-The *z* test relies on the CLT which doesn't kick in until sufficiently large values of n.  While the
-
-The *t* test on the other hand relies on normal data for lower values of n, because otherwise it is unlikely that the distribution of the test statistic would resemble a t distribution (especially for very skewed distributions).  However, as n increases, the CLT kicks in on the test statistic for the *t* tests and its distribution approaches the normal distribution.  
-
 
