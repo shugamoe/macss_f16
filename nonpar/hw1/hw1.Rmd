@@ -1,0 +1,55 @@
+---
+title: "STAT 374 | HW1 "
+author: "Julian McClellan"
+date: "April 23, 2016"
+output:
+  pdf_document:
+    toc: true
+    highlight: zenburn
+    fig_height: 3.5
+---
+## 1. Computing and plotting with R(15 points)
+
+### (a)
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+# Let's define our function
+hw_zt_reject_props = function(sample_size = 3, num_tests = 1000) {
+  
+  # Conduct simulation
+  sims = replicate(rnorm(mean = 0, sd = runif(n = 1,min = 1, max = 50), n=sample_size), n=num_tests)
+  
+  # Construct shared test-statistic (assume null that mean=0 is true)
+  test_stat = (sqrt(sample_size)*apply(sims, 2, mean)) / apply(sims, 2, sd)
+  
+  # Determine critical values for the z and t tests respectively
+  z_crit = qnorm(p = .95)
+  t_crit = qt(df = sample_size - 1, p = .95)
+
+  # Determine whether for each of the tests we rejected using the z or t tests respectively.
+  z_reject = test_stat > z_crit
+  t_reject = test_stat > t_crit
+  
+  # Return proportion of rejectsions for the z and t tests respectively.
+  return(c(count(z_reject, TRUE), count(t_reject, TRUE)))
+
+}
+```
+
+As we can see, when n = 3 the z test rejects the null more often than the t test.  
+
+Now let's run the experiment again with n = 100.  
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+hw_zt_reject_props(sample_size = 100)
+```
+
+Now, the z test rejects the null at the same proportion (approximately) as the t test.  
+
+We can use the one sample *t* test or the *z* test when the data is not normal, but only if the sample size (n) is large enough to invoke the CLT.  Otherwise, we cannot be sure that the distribution of the sample mean is approximately normal.  
+
+The *z* test relies on the CLT which doesn't kick in until sufficiently large values of n.  While the
+
+The *t* test on the other hand relies on normal data for lower values of n, because otherwise it is unlikely that the distribution of the test statistic would resemble a t distribution (especially for very skewed distributions).  However, as n increases, the CLT kicks in on the test statistic for the *t* tests and its distribution approaches the normal distribution.  
+
+
