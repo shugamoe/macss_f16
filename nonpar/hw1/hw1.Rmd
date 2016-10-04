@@ -64,47 +64,95 @@ zs = sim(TRUE)
 plot(sample_size, zs)
 ```
 
-## 2. Leave-ne-out cross-validation (20 points)
+## 2. Leave-one-out cross-validation (20 points)
 
 ### (a)
 
 ### (b)
 
-```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60), echo=FALSE}
+# tricube = function(x) {
+#   return(70 / 81 * (1 - abs(x) ^ 3) ^ 3 * ind(x))
+# }
+# 
+# ind = function(x) {
+#   if(abs(x) <= 1) {
+#     return(1)
+#   } else {
+#     return(0)
+#   }
+# }
+# 
+# S_nj = function(obs, j, x, h = .01) {
+#   n = length(obs)
+#   return(sum(tricube((obs - x) / h) * (obs - x) ^ j))
+# }
+# 
+# b = function(obs, x, h = .01) {
+#   return(tricube((obs - x) / h) * (S_nj(obs, 2, x) - (obs - x) * S_nj(obs, 1, x)))
+# }
+# 
+# l = function(obs, x, h = .01) {
+#   return(b(obs, x) / sum(b(obs, x)))
+# }
+# 
+# lsmoother = function (data, x, h = .01) {
+#   # Utilizing Theorem 5.60 from Textbook
+#   obs = data[,1]
+#   y = data[,2]
+# 
+#   return(sum(l(obs, x) * y))
+# }
+```
 
-kern_base = function(x) {
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=80), fig.show='hold'}
+doppler = function(x) {
   return(sqrt(x * (1 - x))*sin(2.1 * pi/(x + .05)))
 }
 
-doppler = function(x) {
-  if(length(x) == 1) {
-    return(kern_base(x))
-  } else {
-    rv = c()
-    for(num in x) {
-      rv = append(rv, kern_base(num))
-    }
-  return(rv)
-  }
-}
-
-tricube = function(x) {
-  return(70 / 81 * (1 - abs(x) ^ 3) ^ 3 * ind(x))
-}
-
-ind = function(x) {
-  if(abs(x) <= 1) {
-    return(1)
-  } else {
-    return(0)
-  }
-}
-
-model = function(num_obs = 1000, sig = 0.1) {
-  xs = (1:num_obs) / num_obs
-  obs = doppler(xs) + sig * rnorm(num_obs)
+cvs = function(h, x, y) {
+  llr = locfit(y ~ x, alpha = c(0, h), deg = 1)
   
-  llr = density(obs)
-  return(as.list(llr, obs))
+  # From 'smoothdemo.r'
+  Lii = predict(llr, where="data", what="infl")
+  
+  return(mean(((y - fitted(llr)) / (1 - Lii)) ^ 2))
 }
+
+model = function(num_obs = 1000, sigma = 0.1) {
+  # Generate data
+  x = (1:num_obs) / num_obs
+  y = doppler(x) + sigma * rnorm(num_obs)
+  
+  # Determine optimal h (using the function cvs as the "formula derived in part (a)")
+  h = seq(.01, .8, .01)
+  cv_scores = unlist(lapply(h, cvs, x = x, y = y))
+  hstar = h[cv_scores == min(cv_scores)]
+  
+  # Local linear regression fitted using locfit lib
+  out = locfit(y ~ x, alpha = c(0, hstar), deg = 1)
+  plot(x, y, pch=16, cex=0.9, col=rgb(0.7, 0.7, 0.9))
+  lines(x, doppler(x), 'l', col='red', lwd=3)
+  lines(x, fitted(out), 'l', col='blue', lwd=3)
+  
+  # From 'smoothdemo.r'
+  normell = predict(out, where='data', what='vari')
+  n = length(x)
+  lines(x, fitted(out) + sqrt(n) * 2 * sigma * normell, 'l', col='gray', lwd=1)
+  lines(x, fitted(out) - sqrt(n) * 2 * sigma * normell, 'l', col='gray', lwd=1)
+  
+}
+# Run model
+library(locfit)
+model()
 ```
+
+Is $I_{n}(x)$ the 95 percent pointwise confidence interval for $r(x)$?
+
+## 3. Kernel density estimates for Old Faithful (15 points)
+
+```{r, tidy.opts=list(width.cutoff=80), fig.show='hold'}
+data(faithful)
+
+```
+
