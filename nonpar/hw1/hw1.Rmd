@@ -36,10 +36,10 @@ sim = function(part_b = FALSE, ssize = sample_size, sig = 1, b = 100) {
     } else {
       stat_rv = mean(stat_n)
     }
-    rv = append(rv, stat_rv)
+    rv = append(rv, stat_rv) 
   }
   if(part_b) {
-    x = seq(-3, 3, .01)
+    x = seq(-4, 4, .01)
     f = dnorm(x, sd = sig)
     plot(density(rv), main = "Z")
     lines(x,f,'l',col='red')
@@ -64,3 +64,47 @@ zs = sim(TRUE)
 plot(sample_size, zs)
 ```
 
+## 2. Leave-ne-out cross-validation (20 points)
+
+### (a)
+
+### (b)
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+kern_base = function(x) {
+  return(sqrt(x * (1 - x))*sin(2.1 * pi/(x + .05)))
+}
+
+doppler = function(x) {
+  if(length(x) == 1) {
+    return(kern_base(x))
+  } else {
+    rv = c()
+    for(num in x) {
+      rv = append(rv, kern_base(num))
+    }
+  return(rv)
+  }
+}
+
+tricube = function(x) {
+  return(70 / 81 * (1 - abs(x) ^ 3) ^ 3 * ind(x))
+}
+
+ind = function(x) {
+  if(abs(x) <= 1) {
+    return(1)
+  } else {
+    return(0)
+  }
+}
+
+model = function(num_obs = 1000, sig = 0.1) {
+  xs = (1:num_obs) / num_obs
+  obs = doppler(xs) + sig * rnorm(num_obs)
+  
+  llr = density(obs)
+  return(as.list(llr, obs))
+}
+```
