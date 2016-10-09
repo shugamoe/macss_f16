@@ -1,4 +1,4 @@
-ID ,Traffic Volume Count Location  Address,Street,Date of Count,Total Passing Vehicle Volume,Vehicle Volume By Each Direction of Traffic,Latitude,Longitude,Location
+ID,Traff_ress,Street,Dateo_ount,Total_lume,Vehic_ffic,Latitude,Longitude,Location
 24,1603 South,Damen Ave,03/02/2006,18800,North Bound: 9600 / South Bound: 9200,41.859378,-87.676043,"(41.859378, -87.676043)"
 47,1407 South,Indiana Ave,05/02/2006,8300,North Bound: 4900 / South Bound: 3400,41.863938,-87.622471,"(41.863938, -87.622471)"
 48,1933 South,Indiana Ave,03/02/2006,6100,North Bound: 3800 / South Bound: 2300,41.85566,-87.62228,"(41.85566, -87.62228)"

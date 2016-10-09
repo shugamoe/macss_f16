@@ -71,17 +71,17 @@ plot(sample_size, zs)
 ### (b)
 
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60), echo=FALSE}
-# tricube = function(x) {
-#   return(70 / 81 * (1 - abs(x) ^ 3) ^ 3 * ind(x))
-# }
-# 
-# ind = function(x) {
-#   if(abs(x) <= 1) {
-#     return(1)
-#   } else {
-#     return(0)
-#   }
-# }
+tricube = function(x) {
+  return(70 / 81 * (1 - abs(x) ^ 3) ^ 3 * ind(x))
+}
+
+ind = function(x) {
+  if(abs(x) <= 1) {
+    return(1)
+  } else {
+    return(0)
+  }
+}
 # 
 # S_nj = function(obs, j, x, h = .01) {
 #   n = length(obs)
@@ -128,6 +128,7 @@ model = function(num_obs = 1000, sigma = 0.1) {
   h = seq(.01, .8, .01)
   cv_scores = unlist(lapply(h, cvs, x = x, y = y))
   hstar = h[cv_scores == min(cv_scores)]
+  print(hstar)
   
   # Local linear regression fitted using locfit lib
   out = locfit(y ~ x, alpha = c(0, hstar), deg = 1)
@@ -153,6 +154,32 @@ Is $I_{n}(x)$ the 95 percent pointwise confidence interval for $r(x)$?
 
 ```{r, tidy.opts=list(width.cutoff=80), fig.show='hold'}
 data(faithful)
+
+gaus_kern = function(x) {
+  rv = (1 / sqrt(2 * pi)) * exp(-x ^ 2 / 2)
+}
+  
+
+
+tricube = function(x) {
+  return(70 / 81 * (1 - abs(x) ^ 3) ^ 3 * ind(x))
+}
+
+ind = function(x) {
+  if(abs(x) <= 1) {
+    return(1)
+  } else {
+    return(0)
+  }
+}
+
+kde = function(data, h, point) {
+  n = length(data)
+  rv = (1 / n * h) * sum(unlist(lapply((data - point) / h, gaus_kern)))
+  return(rv)
+}
+
+
 
 ```
 
