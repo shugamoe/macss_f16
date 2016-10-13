@@ -12,8 +12,6 @@ output:
 
 ### (a)
 
-
-
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 sample_size = c(seq(1,200))
 sim = function(part_b = FALSE, ssize = sample_size, sig = 1, b = 100) {
@@ -49,61 +47,41 @@ sim = function(part_b = FALSE, ssize = sample_size, sig = 1, b = 100) {
     lines(sample_size, (sig^2) / sample_size, col = "red")
     title(expression(paste(frac(sigma^2, n), "vs. Empirical MSE")), line = -2) 
     
+    print('')
+    
     # Log Log Plot
     plot(sample_size, log = "xy", rv, ylab = "log 1", xlab = "log sample size")
     lines(sample_size, (sig^2) / sample_size, col = "red")
-    title(expression(paste("log(", frac(sigma^2, n), ") ", "vs. log(Empirical MSE)")), line = -2)
+    title(expression(paste("log(", frac(sigma^2, n), ") ", "vs. log(Empirical MSE)")), line = -1)
   }
-  
 }
+sim()
 ```
 
 ### (b)
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 zs = sim(TRUE)
-plot(sample_size, zs)
 ```
 
 ## 2. Leave-one-out cross-validation (20 points)
 
 ### (a)
 
+$\hat{r}_{n}(x_{i})=\sum_{j=1}^{n}L_{ij}Y_{j}=\sum_{j\neq i}^{n}L_{ij}Y_{j}+L_{ii}Y_{i}$ (1)
+
+$\hat{r}_{(-i)}(x_{i})=\frac{\sum_{j\neq i}^{n}L_{ij}Y_{j}}{\sum_{j\neq i}^{n}L_{ij}}$ (2)
+
+where $\sum_{j\neq i}^{n}L_{ij}=1-L_{ii}$
+
+$\hat{R_{n}}(h)=\frac{1}{n}\sum_{i=1}^{n}(Y_{i}-\hat{r}_{(-i)}(x_{i}))^{2}$
+
+from (1) and (2) $\implies\hat{R_{n}}(h)=\frac{1}{n}\sum_{i=1}^{n}(Y_{i}-\frac{\hat{r}_{n}(x_{i})-L_{ii}Y_{i}}{1-L_{ii}})^{2}$
+
+$\implies\hat{R_{n}}(h)=\frac{1}{n}\sum_{i=1}^{n}(\frac{Y_{i}(1-L_{ii})}{(1-L_{ii})}-\frac{\hat{r}_{n}(x_{i})-L_{ii}Y_{i}}{1-L_{ii}})^{2}$
+
+$\implies\hat{R_{n}}(h)=\frac{1}{n}\sum_{i=1}^{n}(\frac{Y_{i}-\hat{r}_{n}(x_{i})}{1-L_{ii}})^{2}$ $\bullet$
+
 ### (b)
-
-```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60), echo=FALSE}
-tricube = function(x) {
-  return(70 / 81 * (1 - abs(x) ^ 3) ^ 3 * ind(x))
-}
-
-ind = function(x) {
-  if(abs(x) <= 1) {
-    return(1)
-  } else {
-    return(0)
-  }
-}
-# 
-# S_nj = function(obs, j, x, h = .01) {
-#   n = length(obs)
-#   return(sum(tricube((obs - x) / h) * (obs - x) ^ j))
-# }
-# 
-# b = function(obs, x, h = .01) {
-#   return(tricube((obs - x) / h) * (S_nj(obs, 2, x) - (obs - x) * S_nj(obs, 1, x)))
-# }
-# 
-# l = function(obs, x, h = .01) {
-#   return(b(obs, x) / sum(b(obs, x)))
-# }
-# 
-# lsmoother = function (data, x, h = .01) {
-#   # Utilizing Theorem 5.60 from Textbook
-#   obs = data[,1]
-#   y = data[,2]
-# 
-#   return(sum(l(obs, x) * y))
-# }
-```
 
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=80), fig.show='hold'}
 doppler = function(x) {
@@ -111,7 +89,7 @@ doppler = function(x) {
 }
 
 cvs = function(h, x, y) {
-  llr = locfit(y ~ x, alpha = c(0, h), deg = 1)
+  llr = locfit(y ~ x, alpha = c(0, h), deg = 1, maxk = 1000000)
   
   # From 'smoothdemo.r'
   Lii = predict(llr, where="data", what="infl")
@@ -124,11 +102,13 @@ model = function(num_obs = 1000, sigma = 0.1) {
   x = (1:num_obs) / num_obs
   y = doppler(x) + sigma * rnorm(num_obs)
   
-  # Determine optimal h (using the function cvs as the "formula derived in part (a)")
+  # Determine optimal h
   h = seq(.01, .8, .01)
-  cv_scores = unlist(lapply(h, cvs, x = x, y = y))
+  alphas = cbind(rep(0, length(h)), h)
+  gcvs = gcvplot(y ~ x, alpha=alphas, deg = 1)
+  cv_scores = gcvs$values
+  plot(h, cv_scores, type = 'l', main = 'Cross validation scores versus bandwidth (h)')
   hstar = h[cv_scores == min(cv_scores)]
-  print(hstar)
   
   # Local linear regression fitted using locfit lib
   out = locfit(y ~ x, alpha = c(0, hstar), deg = 1)
@@ -141,6 +121,7 @@ model = function(num_obs = 1000, sigma = 0.1) {
   n = length(x)
   lines(x, fitted(out) + sqrt(n) * 2 * sigma * normell, 'l', col='gray', lwd=1)
   lines(x, fitted(out) - sqrt(n) * 2 * sigma * normell, 'l', col='gray', lwd=1)
+  title("Plot of data, local linear estimates, and the Confidence Interval")
   
 }
 # Run model
@@ -148,38 +129,146 @@ library(locfit)
 model()
 ```
 
-Is $I_{n}(x)$ the 95 percent pointwise confidence interval for $r(x)$?
+Is $I_{n}(x)$ the 95 percent pointwise confidence interval for $r(x)$? Sure, why not.
 
 ## 3. Kernel density estimates for Old Faithful (15 points)
 
-```{r, tidy.opts=list(width.cutoff=80), fig.show='hold'}
+```{r, tidy.opts=list(width.cutoff=80)}
 data(faithful)
 
+# Could have just used dnorm(x). Oh well.
 gaus_kern = function(x) {
-  rv = (1 / sqrt(2 * pi)) * exp(-x ^ 2 / 2)
-}
-  
-
-
-tricube = function(x) {
-  return(70 / 81 * (1 - abs(x) ^ 3) ^ 3 * ind(x))
-}
-
-ind = function(x) {
-  if(abs(x) <= 1) {
-    return(1)
-  } else {
-    return(0)
-  }
+  rv = (1 / sqrt(2 * pi)) * exp(-(x ^ 2) / 2)
+  return(rv)
 }
 
 kde = function(data, h, point) {
   n = length(data)
-  rv = (1 / n * h) * sum(unlist(lapply((data - point) / h, gaus_kern)))
+  rv = (1 / (n * h)) * sum(unlist(lapply((point - data) / h, gaus_kern)))
   return(rv)
 }
 
+kde_pts = function(data, h) {
+  dom_data = seq(from = range(data)[1], to = range(data)[2], length.out = length(data) * 1.5)
+  dense_pts = unlist(lapply(dom_data, kde, h = h, data = data))
+  return(list(dom_data, dense_pts))
+}
 
+# From Theorem 6.35 in AoNPS. (Using a Gaussian Kernel, this is a shortcut formula for
+# 6.5
+cvs1 = function(data, h) {
+  n = length(data)
+  
+  sum_ij = c()
+  for(x in data) {
+    sum_ij = append(sum_ij, sum(kstar((x - data) / h)))
+  }
+  sum_ij = sum(sum_ij)
+  
+  rv = (1 / (h * n^2)) * sum_ij + (2 / (n * h)) * kstar(0)
+  return(rv)
+}
 
+# Also From Thoerem 6.35 AoNPS "When K is a N(0,1) Gaussian kernel. . . "
+kstar = function(x) {
+  return(dnorm(x, sd = sqrt(2)) - 2 * dnorm(x))
+}
+
+erups = faithful$eruptions
+waits = faithful$waiting
+h = seq(.01, 4, .01)
+
+cv_scores_erups = unlist(lapply(h, cvs1, data = erups))
+plot(h, cv_scores_erups, main = "Eruptions: LOOCV Scores vs. h")
+hstar_erups = h[cv_scores_erups == min(cv_scores_erups)]
+
+cv_scores_waits = unlist(lapply(h, cvs1, data = waits))
+plot(h, cv_scores_waits, main = "Eruptions: LOOCV Scores vs. h")
+hstar_waits = h[cv_scores_waits == min(cv_scores_waits)]
+
+dense_erups = kde_pts(erups, hstar_erups)
+plot(density(erups), type = 'l', ylab = 'Density', xlab = 'Eruption Duration')
+
+dense_waits = kde_pts(waits, hstar_waits)
+plot(density(erups), type = 'l', ylab = 'Density', xlab = 'Wait Time')
 ```
 
+## 4. Risk of a two-dimensional Kernel density estimate (20 points)
+
+See attached :(
+
+## 5. Capital Bikeshare (30 points)
+
+### (a)
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60), fig.show='hold'}
+rmsle = function(trues, estimates) {
+  diff = trues - estimates
+  return(sqrt(mean(diff ^ 2)))
+}
+
+
+train = read.csv("train.csv", colClasses=c('year'="factor", "month"="factor", "hour"="factor", "season"="factor", 
+                                           "holiday"="factor", "workingday"="factor", "weather"="factor"))
+test = read.csv("test.csv", colClasses=c('year'="factor", "month"="factor", "hour"="factor", "season"="factor", 
+                                           "holiday"="factor", "workingday"="factor", "weather"="factor"))
+
+train$count = log(train$count + 1)
+
+# Split the training data into new training and new test sets
+new_train = train[which(train$day <= 15),]
+new_test = train[which(16 <= train$day & train$day <= 19),]
+
+# Change day to factor
+new_train$day = as.factor(new_train$day)
+new_test$day = as.factor(new_test$day)
+test$day = as.factor(test$day)
+
+lm0 = lm(count ~ workingday + holiday + season + daylabel + hour + weather + atemp + humidity*windspeed, data = new_train)
+
+rmsle(new_test$count, predict(lm0, new_test))
+```
+
+### (b)
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60), fig.show='hold'}
+library(MASS)
+library(locfit)
+
+for(day_num in unique(new_train$daylabel)) {
+  mean_count = mean(new_train$count[which(new_train$daylabel == day_num)])
+  new_train$mean_count[which(new_train$daylabel == day_num)] = mean_count
+}
+
+plot(unique(new_train$daylabel), unique(new_train$mean_count), main = 'Means vs. Daylabel', ylab = 'Mean hourly log counts per day', xlab = 'Daylabel')
+
+mcount.model = locfit(mean_count ~ daylabel, data = new_train)
+new_train$resids = resid(mcount.model)
+
+resid_model = lm(resids ~ workingday + holiday + season + daylabel + hour + weather + atemp + humidity*windspeed, data = new_train)
+
+rmsle(new_test$count, predict(resid_model, new_test) + predict(mcount.model, new_test))
+```
+
+### (c)
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=80), fig.show='hold'}
+library(gam)
+
+gam.model = gam(count ~ s(daylabel) + s(atemp) + s(humidity) + s(windspeed) + weather + hour + season + workingday + holiday + s(temp), data = new_train)
+rmsle(new_test$count, predict(gam.model, new_test))
+```
+
+### (d)
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=80), fig.show='hold'}
+library(gam)
+gam.mcount_model = gam(mean_count ~ s(daylabel), data = new_train)
+new_train$resids = resid(gam.mcount_model)
+gam.resid_model = gam(resids ~ + s(atemp) + s(humidity) + s(windspeed) + weather + hour + season + workingday + holiday, data = new_train)
+
+predictions = predict(gam.model, test)
+predictions = exp(predictions) - 1
+
+write.csv(predictions, file = 'assn1-jmcclellan.txt', row.names = FALSE)
+```
