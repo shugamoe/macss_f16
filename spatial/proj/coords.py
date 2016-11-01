@@ -17,15 +17,25 @@ def address_handler(simple_addr):
     coordinates.
     '''
     if 'between' in simple_addr:
-        match = re.search(r'between(.*$)', simple_addr)
+        # Must also match the first street, right now only the last 2 are matched.
+        match = re.search(r'between(.*$)', simple_addr) 
         if match:
             streets = match.groups()[0]
             street0, street1 = streets.split('&')
             street0 = street0.strip()
             street1 = street1.strip()
+        else:
+            print('What the fuck')
             
     elif simple_addr.startswith('Between'):
-        pass
+        match = re.search(r'Between(.*$)', simple_addr)
+        if match:
+            streets = match.groups()[0]
+            street0, street1 = streets.split('&')
+            street0 = street0.strip()
+            street1 = streeet1.strip()
+        else:
+            print('What the fuck')
 
 
 with open('ucpd_daily_incidents_clean.csv', 'r') as f, \
