@@ -176,7 +176,7 @@ kstar = function(x) {
 
 erups = faithful$eruptions
 waits = faithful$waiting
-h = seq(.01, 4, .01)
+h = seq(.0001, .01, .0001)
 
 cv_scores_erups = unlist(lapply(h, cvs1, data = erups))
 plot(h, cv_scores_erups, main = "Eruptions: LOOCV Scores vs. h")
@@ -190,7 +190,7 @@ dense_erups = kde_pts(erups, hstar_erups)
 plot(density(erups), type = 'l', ylab = 'Density', xlab = 'Eruption Duration')
 
 dense_waits = kde_pts(waits, hstar_waits)
-plot(density(erups), type = 'l', ylab = 'Density', xlab = 'Wait Time')
+plot(density(waits), type = 'l', ylab = 'Density', xlab = 'Wait Time')
 ```
 
 ## 4. Risk of a two-dimensional Kernel density estimate (20 points)

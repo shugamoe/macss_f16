@@ -86,41 +86,21 @@
                 <var>FH80</var>
                 <var>FH90</var>
                 <var>West</var>
-                <var>NUM_NBRS</var>
             </variable_order>
             <custom_classifications/>
             <weights_entries>
                 <weights>
-                    <title>natregimes_r</title>
-                    <meta_info>
-                        <weights_type>custom</weights_type>
-                        <path>natregimes_r.gal</path>
-                        <id_variable>FIPSNO</id_variable>
-                    </meta_info>
-                </weights>
-                <weights>
-                    <title>natregimes_q</title>
+                    <title>natregimes_d90</title>
                     <default/>
                     <meta_info>
-                        <weights_type>custom</weights_type>
-                        <path>natregimes_q.gal</path>
+                        <weights_type>threshold</weights_type>
+                        <dist_metric>arc</dist_metric>
+                        <dist_units>mile</dist_units>
+                        <dist_values>centroids</dist_values>
+                        <threshold_val>90.86524738147665</threshold_val>
+                        <path>natregimes_d90.gwt</path>
                         <id_variable>FIPSNO</id_variable>
-                    </meta_info>
-                </weights>
-                <weights>
-                    <title>natregimes_q2</title>
-                    <meta_info>
-                        <weights_type>custom</weights_type>
-                        <path>natregimes_q2.gal</path>
-                        <id_variable>FIPSNO</id_variable>
-                    </meta_info>
-                </weights>
-                <weights>
-                    <title>natregimes_q2inc</title>
-                    <meta_info>
-                        <weights_type>custom</weights_type>
-                        <path>natregimes_q2inc.gal</path>
-                        <id_variable>FIPSNO</id_variable>
+                        <symmetry>symmetric</symmetry>
                     </meta_info>
                 </weights>
             </weights_entries>
