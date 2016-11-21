@@ -126,7 +126,7 @@ def address_lookup(clean_addr, source_addr):
         return(stored_coords[0])
 
 
-def address_handler(raw_addr):
+def address_handler(raw_addr, reverse = False):
     '''
     This function should take a raw address string, process it as necessary, and
     then return a set of GPS coordinates to match the address.
@@ -173,33 +173,39 @@ def address_handler(raw_addr):
         coords = (0, 0)
     else: # The address doesn't require any special processing.
         raw_addr = raw_addr.strip()
-
         coords = address_lookup(raw_addr, raw_addr)
 
-    return(coords)
+    if reverse:
+        new_coords = (coords[1], coords[0])
+        return(new_coords)
+    else:
+        return(coords)
 
 
-with open('ucpd_daily_incidents_clean.csv', 'r') as f, \
-     open('incidents_gps.csv', 'w') as out:
+def main():
+    '''
+    '''
+    with open('ucpd_daily_incidents_clean.csv', 'r') as f, \
+         open('incidents_gps.csv', 'w') as out:
 
-    reader = csv.reader(f)
+        reader = csv.reader(f)
 
-    fieldnames = []
-    for row in reader:
-        # Save and write fieldnames of input file to output file.
-        if not fieldnames:
-            fieldnames = row
-            fieldnames += ['LON', 'LAT']
-            writer = csv.writer(out)
-            writer.writerow(fieldnames)
-            continue
+        fieldnames = []
+        for row in reader:
+            # Save and write fieldnames of input file to output file.
+            if not fieldnames:
+                fieldnames = row
+                fieldnames += ['LON', 'LAT']
+                writer = csv.writer(out)
+                writer.writerow(fieldnames)
+                continue
 
-        simple_addr = row[1]
-        ADDR_NORM[simple_addr] = ADDR_NORM.setdefault(simple_addr, 0) + 1
+            simple_addr = row[1]
+            ADDR_NORM[simple_addr] = ADDR_NORM.setdefault(simple_addr, 0) + 1
 
-        lon, lat = address_handler(simple_addr)
-        row += [lon, lat]
-        writer.writerow(row)        
+            lon, lat = address_handler(simple_addr)
+            row += [lon, lat]
+            writer.writerow(row)        
 
 
 # Clear ADDR_NORM of all problem addresses and add them to ADDR_PROB

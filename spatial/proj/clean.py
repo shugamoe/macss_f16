@@ -72,6 +72,8 @@ with open('ucpd_daily_incidents.csv', 'r') as inp, open('ucpd_daily_incidents_cl
                     row[1] = row[1].replace(' at ', ' & ')
                     row[1] = row[1].replace(' near ', ' & ')
                     row[1] = row[1].replace(' to ', ' & ')
+                    row[1] = row[1].replace('51st St.', 'Hyde Park Blvd.')
+                    row[1] = row[1].replace('51st', 'Hyde Park Blvd.')
 
                     if row[1].count('&') == 3:
                         row[1] = and_fix(row[1])
