@@ -53,22 +53,28 @@ def merge_crime(*keywords, make_csv = False,
         None: Writes a geojson file with merged crime data.
     '''
     ucpd_dataframes = {}
+    cpd_dataframes = {}
     for kw in keywords:
         if kw == '':
             title = 'incident_reports'
         else:
             title = kw
-        ucpd_dataframes[title] = pandit.make_kw_df(kw, write = make_csv)
+        ucpd_dataframes[title] = pandit.make_kw_df_from_ucpd(kw, write = make_csv)
+        cpd_dataframes[title] = pandit.make_kw_df_from_cpd(kw, write = make_csv)
     num_types = len(ucpd_dataframes)
 
+    # Load in the geojson file with the neighborhood polygons
     with open(infile, 'r') as f:
         geojs = json.load(f)
 
-    
+    # Integrate data from the UCPD
     for kw, kw_df in ucpd_dataframes.items():
         num_processed = 0
-        tot = len(kw_df.values)
-        
+
+        # The total is only approximate since we are discarding 2010 and 2016 
+        # data so that we can do full year-to-year comparisons with the CPD
+        # data.
+        tot = len(kw_df.values)         
         for loc, lon, lat, report_date, disp in zip(kw_df.Location, kw_df.LON, 
                                                     kw_df.LAT, 
                                                     kw_df.Reported,
@@ -87,12 +93,48 @@ def merge_crime(*keywords, make_csv = False,
                         closest_tract_index = i
 
                 block = geojs['features'][closest_tract_index]
-                block['properties'][kw + '_tot'] = block['properties'].setdefault(kw, 0) + 1
-                block['properties'][kw + '_{}'.format(yr)] = block['properties'].setdefault(kw, 0) + 1
+                block['properties']['ucpd_' + kw + '_tot'] = block['properties'].setdefault('ucpd_' + kw + '_tot', 0) + 1
+                block['properties']['ucpd_' + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd_' + kw + '_{}'.format(yr), 0) + 1
+
+                if 'open' in disp.lower():
+                    block['properties']['ucpd_open_' + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd__open' + kw + '_{}'.format(yr), 0) + 1
+                elif 'closed' in disp.lower():
+                    block['properties']['ucpd_closed' + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd_closed' + kw + '_{}'.format(yr), 0) + 1
+                elif 'arrest' in disp.lower():
+                    block['properties']['ucpd_arrest' + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd_arrest' + kw + '_{}'.format(yr), 0) + 1
+                elif 'cpd' in disp.lower():
+                    block['properties']['ucpd_CPD' + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd_CPD' + kw + '_{}'.format(yr), 0) + 1
+
+
                 num_processed += 1
                 print('{} assigned to {} | {}% done for {}'.format(loc, block['properties']['tract_bloc'], round(100 * (num_processed / tot), 3), kw))
 
-    for 
+    for kw, kw_df in cpd_dataframes.items():
+        num_processed = 0
+        tot = len(kw_df.values)
+
+        for loc, lat, lon, full_year in zip(kw_df.Block, kw_df.Latitude, 
+                                       kw_df.Longitude,
+                                       kw_df.Year):
+            yr_2digs = full_year - 2000
+            point = Point(lon, lat)
+            found = False
+            min_dist = float('inf')
+
+            for i, block in enumerate(geojs['features']):
+                polygon = shape(block['geometry'])
+                dist_from_point = polygon.distance(point)
+
+                if dist_from_point < min_dist:
+                    min_dist = dist_from_point
+                    closest_tract_index = i
+
+            block = geojs['features'][closest_tract_index]
+            block['properties']['cpd_' + kw + '_tot'] = block['properties'].setdefault('cpd_' + kw + '_tot', 0) + 1
+            block['properties']['cpd_' + kw + '_{}'.format(yr)] = block['properties'].setdefault('cpd_' + kw + '_{}'.format(yr), 0) + 1
+            num_processed += 1
+            print('{} assigned to {} | {}% done for {}'.format(loc, block['properties']['tract_bloc'], round(100 * (num_processed / tot), 3), kw))
+
     with open(outfile + '{}.geojson'.format(num_processed), 'w') as outfile:
         json.dump(geojs, outfile),
         print('File written with code: {}'.format(num_processed))
