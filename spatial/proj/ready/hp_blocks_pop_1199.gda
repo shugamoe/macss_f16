@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+    <title>hp_blocks_pop_1199</title>
+    <layers>
+        <layer>
+            <datasource>
+                <type>GeoJSON</type>
+                <path>hp_blocks_pop_1199.geojson</path>
+            </datasource>
+            <layername>hp_blocks_pop_1199</layername>
+            <title/>
+            <variable_order>
+                <time_ids>
+                    <id>time 0</id>
+                </time_ids>
+                <var>ALL_ROB_TOT</var>
+                <var>ONLY_UCPD_ROB_TOT</var>
+                <var>name10</var>
+                <var>blockce10</var>
+                <var>cpd_robbery_16</var>
+                <var>pop</var>
+                <var>statefp10</var>
+                <var>tractce10</var>
+                <var>cpd_robbery_tot</var>
+                <var>tract_bloc</var>
+                <var>countyfp10</var>
+                <var>geoid10</var>
+                <var>ucpd_openrobbery_tot</var>
+                <var>ucpd_robbery_11</var>
+                <var>ucpd_arrestrobbery_tot</var>
+                <var>ucpd_arrestrobbery_12</var>
+                <var>ucpd_openrobbery_11</var>
+                <var>ucpd_arrestrobbery_11</var>
+                <var>ucpd_robbery_tot</var>
+                <var>ucpd_openrobbery_12</var>
+                <var>ucpd_robbery_12</var>
+                <var>ucpd_robbery_15</var>
+                <var>ucpd_cpdrobbery_15</var>
+                <var>ucpd_cpdrobbery_tot</var>
+                <var>ucpd_robbery_13</var>
+                <var>ucpd_openrobbery_15</var>
+                <var>ucpd_openrobbery_13</var>
+                <var>ucpd_cpdrobbery_14</var>
+                <var>ucpd_robbery_14</var>
+                <var>ucpd_openrobbery_14</var>
+                <var>ucpd_arrestrobbery_14</var>
+                <var>ucpd_arrestrobbery_13</var>
+                <var>ucpd_arrestrobbery_15</var>
+            </variable_order>
+            <custom_classifications/>
+            <weights_entries>
+                <weights>
+                    <title>qw</title>
+                    <default/>
+                    <meta_info>
+                        <weights_type>custom</weights_type>
+                        <path>weights/qw.gal</path>
+                        <id_variable>tract_bloc</id_variable>
+                    </meta_info>
+                </weights>
+            </weights_entries>
+            <default_vars>
+                <default_var>
+                    <name>ONLY_UCPD_ROB_TOT</name>
+                    <time_id>time 0</time_id>
+                </default_var>
+                <default_var>
+                    <name>pop</name>
+                    <time_id>time 0</time_id>
+                </default_var>
+                <default_var>
+                    <name/>
+                    <time_id>time 0</time_id>
+                </default_var>
+                <default_var>
+                    <name/>
+                    <time_id>time 0</time_id>
+                </default_var>
+            </default_vars>
+        </layer>
+    </layers>
+</project>

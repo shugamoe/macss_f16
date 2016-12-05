@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+    <title>hp_blocks_pop_7819</title>
+    <layers>
+        <layer>
+            <datasource>
+                <type>GeoJSON</type>
+                <path>hp_blocks_pop_7819.geojson</path>
+            </datasource>
+            <layername>hp_blocks_pop_7819</layername>
+            <title/>
+            <variable_order>
+                <time_ids>
+                    <id>time 0</id>
+                </time_ids>
+                <var>UCPD_THEFT_CLOSERATE_TOT</var>
+                <var>UCPD_THEFT_ARREST_CHANCE</var>
+                <var>ALL_THEFT_TOT</var>
+                <var>ONLY_UCPD_THEFTS</var>
+                <var>name10</var>
+                <var>blockce10</var>
+                <var>cpd_theft_11</var>
+                <var>pop</var>
+                <var>tract_bloc</var>
+                <var>countyfp10</var>
+                <var>ucpd_opentheft_12</var>
+                <var>ucpd_opentheft_tot</var>
+                <var>statefp10</var>
+                <var>tractce10</var>
+                <var>ucpd_theft_12</var>
+                <var>ucpd_theft_tot</var>
+                <var>cpd_theft_tot</var>
+                <var>geoid10</var>
+                <var>ucpd_theft_11</var>
+                <var>ucpd_opentheft_11</var>
+                <var>ucpd_opentheft_14</var>
+                <var>ucpd_arresttheft_tot</var>
+                <var>ucpd_theft_15</var>
+                <var>ucpd_theft_14</var>
+                <var>ucpd_opentheft_15</var>
+                <var>ucpd_arresttheft_15</var>
+                <var>ucpd_cpdtheft_14</var>
+                <var>ucpd_cpdtheft_tot</var>
+                <var>ucpd_opentheft_13</var>
+                <var>ucpd_theft_13</var>
+                <var>ucpd_arresttheft_13</var>
+                <var>ucpd_arresttheft_11</var>
+                <var>ucpd_cpdtheft_15</var>
+                <var>ucpd_arresttheft_14</var>
+                <var>ucpd_arresttheft_12</var>
+                <var>ucpd_cpdtheft_11</var>
+                <var>ucpd_cpdtheft_13</var>
+            </variable_order>
+            <custom_classifications/>
+            <weights_entries>
+                <weights>
+                    <title>qw</title>
+                    <default/>
+                    <meta_info>
+                        <weights_type>custom</weights_type>
+                        <path>weights/qw.gal</path>
+                        <id_variable>tract_bloc</id_variable>
+                    </meta_info>
+                </weights>
+            </weights_entries>
+            <default_vars>
+                <default_var>
+                    <name>ucpd_arresttheft_tot</name>
+                    <time_id>time 0</time_id>
+                </default_var>
+                <default_var>
+                    <name>ONLY_UCPD_THEFTS</name>
+                    <time_id>time 0</time_id>
+                </default_var>
+                <default_var>
+                    <name/>
+                    <time_id>time 0</time_id>
+                </default_var>
+                <default_var>
+                    <name/>
+                    <time_id>time 0</time_id>
+                </default_var>
+            </default_vars>
+        </layer>
+    </layers>
+</project>
