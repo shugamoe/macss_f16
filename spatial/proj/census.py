@@ -54,7 +54,10 @@ def merge_crime(*keywords, make_csv = False,
     '''
     ucpd_dataframes = {}
     cpd_dataframes = {}
+    file_name = None
     for kw in keywords:
+        if not file_name:
+            file_name = kw
         if kw == '':
             title = 'incident_reports'
         else:
@@ -97,13 +100,23 @@ def merge_crime(*keywords, make_csv = False,
                 block['properties']['ucpd_' + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd_' + kw + '_{}'.format(yr), 0) + 1
 
                 if 'open' in disp.lower():
-                    block['properties']['ucpd_open_' + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd__open' + kw + '_{}'.format(yr), 0) + 1
+                    tdisp = 'open'
+                    block['properties']['ucpd_{}'.format(tdisp) + kw + '_tot'] = block['properties'].setdefault('ucpd_{}'.format(tdisp) + kw + '_tot', 0) + 1
+                    block['properties']['ucpd_{}'.format(tdisp) + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd_{}'.format(tdisp) + kw + '_{}'.format(yr), 0) + 1
                 elif 'closed' in disp.lower():
-                    block['properties']['ucpd_closed' + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd_closed' + kw + '_{}'.format(yr), 0) + 1
+                    tdisp = 'open'
+                    block['properties']['ucpd_{}'.format(tdisp) + kw + '_tot'] = block['properties'].setdefault('ucpd_{}'.format(tdisp) + kw + '_tot', 0) + 1
+                    block['properties']['ucpd_{}'.format(tdisp) + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd_{}'.format(tdisp) + kw + '_{}'.format(yr), 0) + 1
                 elif 'arrest' in disp.lower():
-                    block['properties']['ucpd_arrest' + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd_arrest' + kw + '_{}'.format(yr), 0) + 1
+                    tdisp = 'arrest'
+                    block['properties']['ucpd_{}'.format(tdisp) + kw + '_tot'] = block['properties'].setdefault('ucpd_{}'.format(tdisp) + kw + '_tot', 0) + 1
+                    block['properties']['ucpd_{}'.format(tdisp) + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd_{}'.format(tdisp) + kw + '_{}'.format(yr), 0) + 1
+                # If the CPD is mentioned in the disposition of the case, 
+                # it usually means the UCPD has handed the case off to them.
                 elif 'cpd' in disp.lower():
-                    block['properties']['ucpd_CPD' + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd_CPD' + kw + '_{}'.format(yr), 0) + 1
+                    tdisp = 'cpd'
+                    block['properties']['ucpd_{}'.format(tdisp) + kw + '_tot'] = block['properties'].setdefault('ucpd_{}'.format(tdisp) + kw + '_tot', 0) + 1
+                    block['properties']['ucpd_{}'.format(tdisp) + kw + '_{}'.format(yr)] = block['properties'].setdefault('ucpd_{}'.format(tdisp) + kw + '_{}'.format(yr), 0) + 1
 
 
                 num_processed += 1
@@ -113,9 +126,9 @@ def merge_crime(*keywords, make_csv = False,
         num_processed = 0
         tot = len(kw_df.values)
 
-        for loc, lat, lon, full_year in zip(kw_df.Block, kw_df.Latitude, 
+        for loc, lat, lon, full_year, arrest in zip(kw_df.Block, kw_df.Latitude, 
                                        kw_df.Longitude,
-                                       kw_df.Year):
+                                       kw_df.Year, kw_df.Arrest):
             yr_2digs = full_year - 2000
             point = Point(lon, lat)
             found = False
@@ -132,9 +145,17 @@ def merge_crime(*keywords, make_csv = False,
             block = geojs['features'][closest_tract_index]
             block['properties']['cpd_' + kw + '_tot'] = block['properties'].setdefault('cpd_' + kw + '_tot', 0) + 1
             block['properties']['cpd_' + kw + '_{}'.format(yr)] = block['properties'].setdefault('cpd_' + kw + '_{}'.format(yr), 0) + 1
+            if arrest:
+                tdisp = 'arrest'
+                block['properties']['cpd_{}'.format(tdisp) + kw + '_tot'] = block['properties'].setdefault('cpd_{}'.format(tdisp) + kw + '_tot', 0) + 1
+                block['properties']['cpd_{}'.format(tdisp) + kw + '_{}'.format(yr)] = block['properties'].setdefault('cpd_{}'.format(tdisp) + kw + '_{}'.format(yr), 0) + 1
+            else:
+                tdisp = 'noarrest'
+                block['properties']['cpd_{}'.format(tdisp) + kw + '_tot'] = block['properties'].setdefault('cpd_{}'.format(tdisp) + kw + '_tot', 0) + 1
+                block['properties']['cpd_{}'.format(tdisp) + kw + '_{}'.format(yr)] = block['properties'].setdefault('cpd_{}'.format(tdisp) + kw + '_{}'.format(yr), 0) + 1
             num_processed += 1
             print('{} assigned to {} | {}% done for {}'.format(loc, block['properties']['tract_bloc'], round(100 * (num_processed / tot), 3), kw))
 
-    with open(outfile + '{}.geojson'.format(num_processed), 'w') as outfile:
+    with open(outfile + '{}.geojson'.format(file_name), 'w') as outfile:
         json.dump(geojs, outfile),
-        print('File written with code: {}'.format(num_processed))
+        print('File written with code: {}'.format(file_name))
